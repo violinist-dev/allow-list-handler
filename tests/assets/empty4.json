@@ -1,0 +1,7 @@
+{
+  "extra": {
+    "violinist": {
+      "allow_list": "totally_just_a_string"
+    }
+  }
+}

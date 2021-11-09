@@ -28,7 +28,9 @@ class AllowListHandler
         }
         foreach ($items as $delta => $item) {
             if (empty($item->name)) {
-                // Hm, not much to do here i guess.
+                // Hm, not much to do here I guess. If there is no name, then it
+                // certainly does not match the allow list pattern.
+                unset($items[$delta]);
                 continue;
             }
             foreach ($this->list as $list_item) {
@@ -46,12 +48,7 @@ class AllowListHandler
 
     public static function createFromConfig(Config $config) : AllowListHandler
     {
-        $allow_list = [];
-        try {
-            $allow_list = $config->getAllowList();
-            assert(is_array($allow_list));
-        } catch (\Throwable $e) {
-        }
+        $allow_list = $config->getAllowList();
         return self::createFromArray($allow_list);
     }
 

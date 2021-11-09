@@ -5,6 +5,7 @@ namespace Violinist\AllowListHandler\Tests;
 use PHPUnit\Framework\TestCase;
 use Violinist\AllowListHandler\AllowListHandler;
 use Violinist\Config\Config;
+use Wa72\SimpleLogger\ArrayLogger;
 
 class ListHandlerTest extends TestCase
 {
@@ -162,12 +163,58 @@ class ListHandlerTest extends TestCase
           (object) [
             'name' => 'not-drupal/not-core',
           ],
+          (object) [
+            'not-name-key' => 'vendor/package',
+          ]
         ]));
         self::assertNotEmpty($handler->applyToItems([
           (object) [
             'name' => 'not-drupal/core',
           ],
         ]));
+    }
+
+    public function testWithLogger()
+    {
+        $config = Config::createFromComposerData((object) [
+          'extra' => (object) [
+            'violinist' => (object) [
+              'allow_list' => ['drupal/*']
+            ],
+          ],
+        ]);
+        $items = [
+          (object) [
+            'name' => 'package1',
+          ],
+          (object) [
+            'name' => 'package2',
+          ],
+          (object) [
+            'name' => 'package3',
+          ],
+          (object) [
+            'name' => 'drupal/core',
+          ],
+        ];
+        $handler = AllowListHandler::createFromConfig($config);
+        $logger = new ArrayLogger();
+        $handler->setLogger($logger);
+        $handler->applyToItems($items);
+        $log_items = $logger->get();
+        foreach ($items as $item) {
+            if ($item->name === 'drupal/core') {
+                continue;
+            }
+            $found = false;
+            foreach ($log_items as $log_item) {
+                if (strpos($log_item["message"], $item->name) === false) {
+                    continue;
+                }
+                $found = true;
+            }
+            self::assertTrue($found);
+        }
     }
 
     public function getEmptyVariations()
@@ -178,7 +225,14 @@ class ListHandlerTest extends TestCase
             ],
             [
                 'empty2',
-            ]
+            ],
+            [
+                'empty3',
+            ],
+            [
+                'empty4',
+            ],
+
         ];
     }
 }
